@@ -2,7 +2,7 @@
  * Parallel program to perform matrix-matrix multiplication
  *
  * To run this program:
- * 	(compile): g++ -std=c++11 Parallel.cpp -o parallel
+ * 	(compile): g++ -std=c++11 -fopenmp Parallel.cpp -o parallel
  * 	(run): parallel
  *
  *
