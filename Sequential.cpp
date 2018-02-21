@@ -12,6 +12,7 @@
 #include <random>
 #include <chrono>
 #include <math.h>
+#include "timer.h"
 
 using namespace std::chrono;
 using namespace std;
@@ -39,10 +40,11 @@ void populateMatrix(double** matrix, int size){
 }
 
 /*A method to perfrom matrix multiplication on given two matrices*/
-long multiplyMatrices(double **matA, double **matB, int size){
+double multiplyMatrices(double **matA, double **matB, int size){
   double** resultMatrix = initializeMatrix(size);
-
-  high_resolution_clock::time_point start = high_resolution_clock::now();//Start clock
+  double start;
+  double end;
+  GET_TIME(start);//Start clock
 
   for(int i = 0; i < size; i++){
     for(int j = 0; j < size; j++){
@@ -53,14 +55,13 @@ long multiplyMatrices(double **matA, double **matB, int size){
     }
   }
 
+  GET_TIME(end); //End clock
 
-  high_resolution_clock::time_point end = high_resolution_clock::now(); //End clock
-
-  double duration = (double)duration_cast<nanoseconds>( end - start ).count()/1000000;   //Get duration in nano seconds
+  double duration = (end - start);   //Get duration in  seconds
 
   delete  matA;     //Free the memory allocated for matA
   delete  matB;     //Free the memory allocated for matB
-  delete  resultMatrix;   //Free the memory allocated for resMat
+  delete  resultMatrix;   //Free the memory allocated for resMat*
 
   return duration;
 
