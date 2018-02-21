@@ -3,7 +3,7 @@
  *
  * To run this program:
  * 	(compile): g++  -fopenmp OptimisedParallel.cpp -o optimisedparallel
- * 	(run): parallel
+ * 	(run): optimisedparallel
  *
  *
  */
@@ -47,6 +47,17 @@ void getTranspose(double** matrix,int size){
     }
 }
 
+double* matrixToArray(double** matrix,int size){
+    double* array = (double*)malloc(sizeof(double)*size*size);
+    int id;
+    for(int i = 0; i<size; i++) {
+        for (int j = 0; j < size; j++) {
+            id = i*size + j;
+            array[id] = matrix[i][j];
+        }
+    }
+}
+
 /*A method to perfrom matrix multiplication on given two matrices*/
 double multiplyMatrices(double **matA, double **matB, int size){
     double** resMat = initializeMatrix(size);
@@ -55,22 +66,33 @@ double multiplyMatrices(double **matA, double **matB, int size){
     double endTime;
 
     getTranspose(matB,size);
-    GET_TIME(startTime); //Start clock
+
+    double* arrA = (double*)malloc(sizeof(double)*size*size);
+    double* arrB = (double*)malloc(sizeof(double)*size*size);
+#pragma omp parallel for
+    for(int i = 0; i<size; i++) {
+        for (int j = 0; j < size; j++) {
+            int id = i*size + j;
+            arrA[id] = matA[i][j];
+            arrB[id] = matB[i][j];
+        }
+    }
+
+    GET_TIME(startTime);//Start clock
 #pragma omp parallel for
     for(int row = 0; row < size; row++){
         for(int col = 0; col < size; col++){
             resMat[row][col] = 0.0;
+            double temp = 0.0;
             for (int cur = 0; cur < size; cur++) {
-                resMat[row][col] += matA[row][cur] * matB[col][cur];
+                temp += arrA[row*size + cur] * arrB[col*size + cur];
             }
+            resMat[row][col] = temp;
         }
     }
 
-
-
-
-    GET_TIME(endTime);// End clock
-    double duration = endTime - startTime;// Get duration from seconds
+    GET_TIME(endTime);//End clock
+    double duration = endTime - startTime;//Get duration in  seconds
 
     delete  matA;     //Free the memory allocated for matA
     delete  matB;     //Free the memory allocated for matB
@@ -133,7 +155,7 @@ int main(int argc, const char* argv[]) {
     }
     mean = getMean(runningTimes,rounds);
     cout<<"\nmean = "<<mean<<endl;
-    sd = getSD(runningTimes,rounds,mean);//Get the standard deviation for the initial 10 samples
+    sd = getSD(runningTimes,rounds,mean);
     cout<<"sample SD = "<<sd<<endl;
     return 0;
 }

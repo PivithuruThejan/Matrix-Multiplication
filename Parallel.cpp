@@ -124,7 +124,7 @@ int main(int argc, const char* argv[]) {
     }
     mean = getMean(runningTimes,rounds);
     cout<<"\nmean = "<<mean<<endl;
-    sd = getSD(runningTimes,rounds,mean);//Get the standard deviation for the initial 10 samples
+    sd = getSD(runningTimes,rounds,mean);
     cout<<"sample SD = "<<sd<<endl;
     return 0;
 }
