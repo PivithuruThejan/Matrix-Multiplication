@@ -78,6 +78,31 @@ double matrixMultiply(int size){
 
 }
 
+/*A method to get the mean when an array of running times is given*/
+double getMean(double* runningTimes, int size){
+  double sum = 0;
+  double mean = 0;
+  for(int i=0;i<size;i++){         //A loop to add up the values
+    sum += runningTimes[i];
+  }
+   
+  mean = sum / size;
+  return mean;
+}
+
+/*A method to calculate the standard deviation when the distribution and the mean are given*/
+double getSD(double* runningTimes, int size, double mean){
+  double variance = 0, sd =0;
+  double* temp =  new double[size]; 
+  for (int i = 0; i < size; i++) {
+      temp[i] = runningTimes[i] - mean;
+      temp[i] = pow(temp[i], 2.0); //to get the (x-average)……2
+      variance += temp[i];
+  }
+  variance = variance / (size-1); // sample variance
+  sd = sqrt(variance);
+}
+
 
 int main(int argc, const char* argv[]) {
     int rounds;
@@ -86,10 +111,17 @@ int main(int argc, const char* argv[]) {
     cin >> rounds;
     cout << "Matrix size:";
     cin >> size;
+    double* runningTimes = new double[rounds];
+    double mean = 0, sd =0;
     for(int i=0;i< rounds;i++)
     {
         double duration = matrixMultiply(size);
+        runningTimes[i] = duration;
         cout << duration<< endl;
    }
+    mean = getMean(runningTimes,rounds);
+    cout<<"\nmean = "<<mean<<endl;
+    sd = getSD(runningTimes,rounds,mean);//Get the standard deviation for the initial 10 samples
+    cout<<"sample SD = "<<sd<<endl;
   return 0;
 }
