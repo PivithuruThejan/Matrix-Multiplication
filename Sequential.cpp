@@ -2,7 +2,7 @@
  * Sequential program to perform matrix-matrix multiplication
  *
  * To run this program:
- * 	(compile): g++ -std=c++11 sequential.cpp -o sequential
+ * 	(compile): g++  sequential.cpp -o sequential
  * 	(run): sequential
  *
  * 
@@ -10,11 +10,9 @@
 
 #include <iostream>
 #include <random>
-#include <chrono>
 #include <math.h>
 #include "timer.h"
 
-using namespace std::chrono;
 using namespace std;
 
 /*A method to initialize a matrix)*/
@@ -28,15 +26,12 @@ double** initializeMatrix(int size){
 
 /*A method to populate a matrix with random values*/
 void populateMatrix(double** matrix, int size){
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_real_distribution<> dis(0,8);//The distribution in range 1-8
 
-  for (int i = 0; i < size; i++) {
-    for (int j = 0; j < size; j++) {
-      matrix[i][j] = dis(gen);
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            matrix[i][j] = (rand()%1000)/10.0;
+        }
     }
-  }
 }
 
 /*A method to perfrom matrix multiplication on given two matrices*/
