@@ -2,7 +2,9 @@
  * Parallel program to perform matrix-matrix multiplication
  *
  * To run this program:
+
  * 	(compile): g++ -fopenmp Parallel.cpp -o parallel
+
  * 	(run): parallel
  *
  *
@@ -10,10 +12,10 @@
 
 #include <iostream>
 #include <random>
+
 #include <math.h>
 #include <omp.h>
 #include "timer.h"
-
 
 using namespace std;
 
@@ -28,7 +30,6 @@ double** initializeMatrix(int size){
 
 /*A method to populate a matrix with random values*/
 void populateMatrix(double** matrix, int size){
-
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             matrix[i][j] = (rand()%1000)/10.0;
@@ -39,6 +40,7 @@ void populateMatrix(double** matrix, int size){
 /*A method to perfrom matrix multiplication on given two matrices*/
 double multiplyMatrices(double **matA, double **matB, int size){
     double** resMat = initializeMatrix(size);
+
 
     double startTime;
     double endTime;
@@ -53,18 +55,22 @@ double multiplyMatrices(double **matA, double **matB, int size){
         }
     }
 
+
     GET_TIME(endTime);//End clock
+
     double duration = endTime - startTime;
 
     delete  matA;     //Free the memory allocated for matA
     delete  matB;     //Free the memory allocated for matB
     delete  resMat;   //Free the memory allocated for resMat
 
+
     return duration;// Get duration in seconds
 
 }
 
 /*This method do a random matrix multiplication for two matrices of given size*/
+
 double matrixMultiply(int size){
 
     double** matA = initializeMatrix(size);    //Initialize matrix A
@@ -99,6 +105,7 @@ double getSD(double* runningTimes, int size, double mean){
     variance = variance / (size-1); // sample variance
     sd = sqrt(variance);
 }
+
 
 int main(int argc, const char* argv[]) {
     int rounds;
