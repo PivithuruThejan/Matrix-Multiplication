@@ -10,10 +10,10 @@
 
 #include <iostream>
 #include <random>
+
 #include <math.h>
 #include <omp.h>
 #include "timer.h"
-
 
 using namespace std;
 
@@ -28,7 +28,6 @@ double** initializeMatrix(int size){
 
 /*A method to populate a matrix with random values*/
 void populateMatrix(double** matrix, int size){
-
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             matrix[i][j] = (rand()%1000)/10.0;
@@ -40,10 +39,11 @@ void populateMatrix(double** matrix, int size){
 double multiplyMatrices(double **matA, double **matB, int size){
     double** resMat = initializeMatrix(size);
 
+
     double startTime;
     double endTime;
     GET_TIME(startTime);//Start clock
-    #pragma omp parallel for
+#pragma omp parallel for
     for(int row = 0; row < size; row++){
         for(int col = 0; col < size; col++){
             resMat[row][col] = 0.0;
@@ -53,18 +53,22 @@ double multiplyMatrices(double **matA, double **matB, int size){
         }
     }
 
+
     GET_TIME(endTime);//End clock
+
     double duration = endTime - startTime;
 
     delete  matA;     //Free the memory allocated for matA
     delete  matB;     //Free the memory allocated for matB
     delete  resMat;   //Free the memory allocated for resMat
 
+
     return duration;// Get duration in seconds
 
 }
 
 /*This method do a random matrix multiplication for two matrices of given size*/
+
 double matrixMultiply(int size){
 
     double** matA = initializeMatrix(size);    //Initialize matrix A
@@ -98,17 +102,26 @@ double getSD(double* runningTimes, int size, double mean){
     }
     variance = variance / (size-1); // sample variance
     sd = sqrt(variance);
+    return sd;
+}
+
+/*A method to calculate required rounds when mean and sd is given for 95% confidence*/
+double getRounds(double mean,double sd){
+    double n = (100*1.96*sd)/(5.0*mean);
+    return n*n;
 }
 
 int main(int argc, const char* argv[]) {
     int rounds;
     int size;
+    cout << "------------------------Parallel Approach-----------------------------\n"<<endl;
+    cout << "Matrix Dimention:";
+    cin >> size;            //Get matrix dimention
     cout << "No of Rounds:";
-    cin >> rounds;
-    cout << "Matrix size:";
-    cin >> size;
+    cin >> rounds;          //Get number of rounds
+    cout << "\n-------------------------Time Values------------------------------------\n"<<endl;
     double* runningTimes = new double[rounds];
-    double mean = 0, sd =0;
+    double mean = 0, sd =0, requiredRounds=0;
     for(int i=0;i< rounds;i++)
     {
         double duration = matrixMultiply(size);
@@ -119,5 +132,7 @@ int main(int argc, const char* argv[]) {
     cout<<"\nmean = "<<mean<<endl;
     sd = getSD(runningTimes,rounds,mean);
     cout<<"sample SD = "<<sd<<endl;
+    requiredRounds = getRounds(mean,sd);
+    cout<<"required rounds  = "<<requiredRounds<<endl;
     return 0;
 }

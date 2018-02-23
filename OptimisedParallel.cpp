@@ -2,7 +2,7 @@
  * Parallel program to perform matrix-matrix multiplication
  *
  * To run this program:
- * 	(compile): g++  -fopenmp OptimisedParallel.cpp -o optimisedparallel
+ * 	(compile): g++ -O2 -fopenmp OptimisedParallel.cpp -o optimisedparallel
  * 	(run): optimisedparallel
  *
  *
@@ -36,24 +36,14 @@ void populateMatrix(double** matrix, int size){
     }
 }
 
+/*A method to get the transpose of a given matrix*/
 void getTranspose(double** matrix,int size){
     double temp;
     for(int i = 0; i<size; i++){
-        for(int j = 0; j<size; j++){
+        for(int j = 0; j<size; j++){        //mat[i][j] = mat[j][i]
             temp = matrix[i][j];
             matrix[i][j] = matrix[j][i];
             matrix[j][i] = temp;
-        }
-    }
-}
-
-double* matrixToArray(double** matrix,int size){
-    double* array = (double*)malloc(sizeof(double)*size*size);
-    int id;
-    for(int i = 0; i<size; i++) {
-        for (int j = 0; j < size; j++) {
-            id = i*size + j;
-            array[id] = matrix[i][j];
         }
     }
 }
@@ -65,27 +55,30 @@ double multiplyMatrices(double **matA, double **matB, int size){
     double startTime;
     double endTime;
 
-    getTranspose(matB,size);
+    getTranspose(matB,size);                    //Get transpose of matB
 
     double* arrA = (double*)malloc(sizeof(double)*size*size);
     double* arrB = (double*)malloc(sizeof(double)*size*size);
 #pragma omp parallel for
     for(int i = 0; i<size; i++) {
-        for (int j = 0; j < size; j++) {
+        for (int j = 0; j < size; j++) {          // Flatting two matrices A and B
             int id = i*size + j;
             arrA[id] = matA[i][j];
             arrB[id] = matB[i][j];
         }
     }
 
-    GET_TIME(startTime);//Start clock
+    GET_TIME(startTime);                       //Start clock
 #pragma omp parallel for
     for(int row = 0; row < size; row++){
         for(int col = 0; col < size; col++){
-            resMat[row][col] = 0.0;
             double temp = 0.0;
-            for (int cur = 0; cur < size; cur++) {
-                temp += arrA[row*size + cur] * arrB[col*size + cur];
+            for (int cur = 0; cur < size; cur+=5) {
+                temp += arrA[row*size + cur] * arrB[col*size + cur];        // Reduce loop iterations so that reduce the amount of jump operations
+                temp += arrA[row*size + cur+1] * arrB[col*size + cur+1];
+                temp += arrA[row*size + cur+2] * arrB[col*size + cur+2];
+                temp += arrA[row*size + cur+3] * arrB[col*size + cur+3];
+                temp += arrA[row*size + cur+4] * arrB[col*size + cur+4];
             }
             resMat[row][col] = temp;
         }
@@ -128,25 +121,33 @@ double getMean(double* runningTimes, int size){
 /*A method to calculate the standard deviation when the distribution and the mean are given*/
 double getSD(double* runningTimes, int size, double mean){
     double variance = 0, sd =0;
+    double sum=0,sqSum=0;
     double* temp =  new double[size];
     for (int i = 0; i < size; i++) {
-        temp[i] = runningTimes[i] - mean;
-        temp[i] = pow(temp[i], 2.0); //to get the (x-average)……2
-        variance += temp[i];
+        sqSum += runningTimes[i]*runningTimes[i];
     }
-    variance = variance / (size-1); // sample variance
-    sd = sqrt(variance);
+    variance = (sqSum/size) - mean*mean; // sample variance = Sum(x^2)/n - mean^2
+    sd = sqrt(variance);                 // sd = variance^0.5
+    return sd;
+}
+
+/*A method to calculate required rounds when mean and sd is given for 95% confidence*/
+double getRounds(double mean,double sd){
+    double n = (100*1.96*sd)/(5.0*mean);
+    return n*n;
 }
 
 int main(int argc, const char* argv[]) {
     int rounds;
     int size;
+    cout << "------------------------Optimized Parallel Approach-----------------------------\n"<<endl;
+    cout << "Matrix Dimention:";
+    cin >> size;            //Get matrix dimention
     cout << "No of Rounds:";
-    cin >> rounds;
-    cout << "Matrix size:";
-    cin >> size;
+    cin >> rounds;          //Get number of rounds
+    cout << "\n-------------------------Time Values------------------------------------\n"<<endl;
     double* runningTimes = new double[rounds];
-    double mean = 0, sd =0;
+    double mean = 0, sd =0, requiredRounds=0;
     for(int i=0;i< rounds;i++)
     {
         double duration = matrixMultiply(size);
@@ -157,5 +158,7 @@ int main(int argc, const char* argv[]) {
     cout<<"\nmean = "<<mean<<endl;
     sd = getSD(runningTimes,rounds,mean);
     cout<<"sample SD = "<<sd<<endl;
+    requiredRounds = getRounds(mean,sd);
+    cout<<"required rounds  = "<<requiredRounds<<endl;
     return 0;
 }
